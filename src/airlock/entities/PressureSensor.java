@@ -5,16 +5,15 @@ public class PressureSensor implements IPressureSensor {
 	double pressure;
 	
 	public PressureSensor(double initialPressure) {
-		// TODO Auto-generated method stub
+		this.pressure = initialPressure;
 	}
 	
 	public double getPressure() {
-		// TODO Auto-generated method stub
-		return 0.0;
+		return this.pressure;
 	}
 	
 	public void setPressure(double newPressure) {
-		// TODO Auto-generated method stub
+		this.pressure = newPressure;
 	}
 
 }
