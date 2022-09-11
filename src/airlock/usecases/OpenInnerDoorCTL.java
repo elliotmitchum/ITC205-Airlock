@@ -1,6 +1,7 @@
 package airlock.usecases;
 
 import airlock.entities.IAirLock;
+import airlock.entities.OverrideState;
 import airlock.exceptions.AirLockException;
 import airlock.exceptions.DoorException;
 
@@ -12,8 +13,17 @@ public class OpenInnerDoorCTL {
 		this.airLock = airLock;
 	}
 
-	public void openInnerDoor() {
-		// TODO Auto-generated method stub
+	public void openInnerDoor() throws AirLockException, DoorException {
+		if (this.airLock.getOverrideState() == OverrideState.MANUAL) {
+			this.airLock.openInnerDoor();
+		} else {
+			if (!this.airLock.isOuterDoorClosed()) {
+				this.airLock.closeOuterDoor();
+			}
+
+			this.airLock.equaliseInternalPressure();
+			this.airLock.openInnerDoor();
+		}
 	}
 
 }
