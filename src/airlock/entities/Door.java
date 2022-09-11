@@ -19,7 +19,7 @@ public class Door implements IDoor {
 	public Door(IPressureSensor externalSensor, IPressureSensor internalSensor, DoorState initialState) {
 		this.externalSensor = externalSensor;
 		this.internalSensor = internalSensor;
-		this.state = initialState;		
+		this.state = initialState;
 	}
 	
 	@Override

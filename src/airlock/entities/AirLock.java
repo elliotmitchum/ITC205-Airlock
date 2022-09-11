@@ -18,7 +18,11 @@ public class AirLock implements IAirLock{
 
 	public AirLock(IDoor externalDoor, IDoor internalDoor,
 			IPressureSensor lockSensor) {
-		// TODO Auto-generated method stub
+		this.outerDoor = externalDoor;
+		this.innerDoor = internalDoor;
+		this.lockSensor = lockSensor;
+		this.state = externalDoor.isOpen() || internalDoor.isOpen() ? AirLockState.OPEN : AirLockState.SEALED;
+		this.overrideState = OverrideState.AUTO;
 	}
 	
 	public String toString() {
@@ -29,37 +33,67 @@ public class AirLock implements IAirLock{
 	
 	@Override
 	public void openOuterDoor() throws OtherDoorOpenException, DoorException {
-		// TODO Auto-generated method stub
+		if (this.overrideState == OverrideState.AUTO && this.innerDoor.isOpen()) {
+			throw new OtherDoorOpenException("Inner door must be closed.");
+		}
+
+		this.outerDoor.open();
+		this.state = AirLockState.OPEN;
 	}
 	
 	@Override
 	public void closeOuterDoor() throws DoorException {
-		// TODO Auto-generated method stub
+		this.outerDoor.close();
+		this.state = AirLockState.SEALED;
  	}
 	
 	@Override
 	public void openInnerDoor() throws OtherDoorOpenException, DoorException {
-		// TODO Auto-generated method stub
+		if (this.overrideState == OverrideState.AUTO && this.outerDoor.isOpen()) {
+			throw new OtherDoorOpenException("Outer door must be closed.");
+		}
+
+		this.innerDoor.open();
+		this.state = AirLockState.OPEN;
 	}
 	
 	@Override
 	public void closeInnerDoor() throws DoorException {
-		// TODO Auto-generated method stub
+		this.innerDoor.close();
+		this.state = AirLockState.SEALED;
 	}
 	
 	@Override
 	public void equaliseInternalPressure() throws AirLockException {
-		// TODO Auto-generated method stub
+		if (this.state != AirLockState.SEALED) {
+			throw new AirLockNotSealedException("Airlock must be sealed");
+		}
+
+		double externalPressure = innerDoor.getExternalPressure();
+		this.lockSensor.setPressure(externalPressure);
 	}
 
 	@Override
 	public void equaliseExternalPressure()  throws AirLockException {
-		// TODO Auto-generated method stub
+		if (this.state != AirLockState.SEALED) {
+			throw new AirLockNotSealedException("Airlock must be sealed");
+		}
+
+		double externalPressure = outerDoor.getExternalPressure();
+		this.lockSensor.setPressure(externalPressure);
 	}
 
 	@Override
 	public void toggleOverride() throws OverrideException{
-		// TODO Auto-generated method stub
+		if (innerDoor.isOpen() || outerDoor.isOpen()) {
+			throw new OverrideException("Doors must first be closed");
+		}
+
+		if (this.overrideState == OverrideState.MANUAL) {
+			this.overrideState = OverrideState.AUTO;
+		} else {
+			this.overrideState = OverrideState.MANUAL;
+		}
 	}
 
 	@Override
