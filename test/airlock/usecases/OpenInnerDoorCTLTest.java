@@ -1,15 +1,13 @@
 package airlock.usecases;
 
-import airlock.entities.AirLock;
-import airlock.entities.Door;
-import airlock.entities.DoorState;
-import airlock.entities.PressureSensor;
+import airlock.entities.*;
 import airlock.exceptions.AirLockException;
 import airlock.exceptions.DoorException;
 import airlock.exceptions.OverrideException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class OpenInnerDoorCTLTest {
 
@@ -17,28 +15,26 @@ class OpenInnerDoorCTLTest {
     // Should open inner door on manual.
     void shouldOpenDoorOnManual() {
         try {
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(0), lockSensor, DoorState.CLOSED);
-            Door externalDoor = new Door(new PressureSensor(0), lockSensor, DoorState.CLOSED);
-            AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
-            airLock.toggleOverride();
+            AirLock airLock = mock(AirLock.class);
+            when(airLock.getOverrideState()).thenReturn(OverrideState.MANUAL);
             new OpenInnerDoorCTL(airLock).openInnerDoor();
-            assertEquals(false, airLock.isInnerDoorClosed());
+            verify(airLock, times(1)).openInnerDoor();
         } catch (DoorException | AirLockException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Test
-    // Should open inner door on auto.
+    // Should open inner door on auto, close outer door if open.
     void shouldOpenDoorOnAuto() {
         try {
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(0), lockSensor, DoorState.CLOSED);
-            Door externalDoor = new Door(new PressureSensor(0), lockSensor, DoorState.CLOSED);
-            AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
+            AirLock airLock = mock(AirLock.class);
+            when(airLock.getOverrideState()).thenReturn(OverrideState.AUTO);
+            when(airLock.isOuterDoorClosed()).thenReturn(false);
             new OpenInnerDoorCTL(airLock).openInnerDoor();
-            assertEquals(false, airLock.isInnerDoorClosed());
+            verify(airLock, times(1)).closeOuterDoor();
+            verify(airLock, times(1)).equaliseInternalPressure();
+            verify(airLock, times(1)).openInnerDoor();
         } catch (DoorException | AirLockException e) {
             throw new RuntimeException(e);
         }
