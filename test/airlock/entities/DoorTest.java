@@ -4,6 +4,8 @@ import airlock.exceptions.DoorException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class DoorTest {
 
@@ -11,8 +13,8 @@ class DoorTest {
     // Throws a DoorAlreadyOpenException if Door is already open.
     void openOpened() {
         try {
-            PressureSensor internal = new PressureSensor(10);
-            PressureSensor external = new PressureSensor(10);
+            PressureSensor internal = mock(PressureSensor.class);
+            PressureSensor external = mock(PressureSensor.class);
             Door door = new Door(external, internal, DoorState.OPEN);
             door.open();
             fail("Open door cannot be opened again.");
@@ -25,8 +27,8 @@ class DoorTest {
     // Throws a DoorAlreadyOpenException exception if Door is already closed.
     void closeClosed() {
         try {
-            PressureSensor internal = new PressureSensor(10);
-            PressureSensor external = new PressureSensor(10);
+            PressureSensor internal = mock(PressureSensor.class);
+            PressureSensor external = mock(PressureSensor.class);
             Door door = new Door(external, internal, DoorState.CLOSED);
             door.close();
             fail("Closed door cannot be closed again.");
@@ -39,8 +41,10 @@ class DoorTest {
     // Opens door (Door state becomes OPEN) if internal and internal pressures are within TOLERANCE.
     void openWithInInternalTolerance() {
         try {
-            PressureSensor internal = new PressureSensor(10 + 0.001);
-            PressureSensor external = new PressureSensor(10);
+            PressureSensor internal = mock(PressureSensor.class);
+            PressureSensor external = mock(PressureSensor.class);
+            when(internal.getPressure()).thenReturn(10 + 0.001);
+            when(external.getPressure()).thenReturn(10.0);
             Door door = new Door(external, internal, DoorState.CLOSED);
             door.open();
             assertEquals(DoorState.OPEN, door.getState());
@@ -53,8 +57,10 @@ class DoorTest {
     // Throws an UnequalPressureException internal outside of TOLERANCE.
     void openWithOutInternalTolerance() {
         try {
-            PressureSensor internal = new PressureSensor(10 + 0.002);
-            PressureSensor external = new PressureSensor(10 );
+            PressureSensor internal = mock(PressureSensor.class);
+            PressureSensor external = mock(PressureSensor.class);
+            when(internal.getPressure()).thenReturn(10 + 0.002);
+            when(external.getPressure()).thenReturn(10.0);
             Door door = new Door(external, internal, DoorState.CLOSED);
             door.open();
             fail("Incorrectly opened outside of tolerance");
@@ -67,8 +73,10 @@ class DoorTest {
     // Opens door (Door state becomes OPEN) if internal and external pressures are within TOLERANCE.
     void openWithInExternalTolerance() {
         try {
-            PressureSensor internal = new PressureSensor(10);
-            PressureSensor external = new PressureSensor(10 + 0.001);
+            PressureSensor internal = mock(PressureSensor.class);
+            PressureSensor external = mock(PressureSensor.class);
+            when(internal.getPressure()).thenReturn(10.0);
+            when(external.getPressure()).thenReturn(10 + 0.001);
             Door door = new Door(external, internal, DoorState.CLOSED);
             door.open();
             assertEquals(DoorState.OPEN, door.getState());
@@ -81,8 +89,10 @@ class DoorTest {
     // Throws an UnequalPressureException external outside of TOLERANCE.
     void openWithOutExternalTolerance() {
         try {
-            PressureSensor internal = new PressureSensor(10);
-            PressureSensor external = new PressureSensor(10 + 0.002);
+            PressureSensor internal = mock(PressureSensor.class);
+            PressureSensor external = mock(PressureSensor.class);
+            when(internal.getPressure()).thenReturn(10.0);
+            when(external.getPressure()).thenReturn(10 + 0.002);
             Door door = new Door(external, internal, DoorState.CLOSED);
             door.open();
             fail("Incorrectly opened outside of tolerance");
@@ -95,8 +105,8 @@ class DoorTest {
     // Closes door (Door state becomes CLOSED).
     void close() {
         try {
-            PressureSensor internal = new PressureSensor(10);
-            PressureSensor external = new PressureSensor(10);
+            PressureSensor internal = mock(PressureSensor.class);
+            PressureSensor external = mock(PressureSensor.class);
             Door door = new Door(external, internal, DoorState.OPEN);
             door.close();
             assertEquals(DoorState.CLOSED, door.getState());
@@ -109,8 +119,9 @@ class DoorTest {
     // Should return the pressure reading from the external sensor.
     void shouldGetExternalPressure() {
         double externalPressure = 20;
-        PressureSensor internal = new PressureSensor(10);
-        PressureSensor external = new PressureSensor(externalPressure);
+        PressureSensor internal = mock(PressureSensor.class);
+        PressureSensor external = mock(PressureSensor.class);
+        when(external.getPressure()).thenReturn(externalPressure);
         Door door = new Door(external, internal, DoorState.OPEN);
         assertEquals(externalPressure, door.getExternalPressure());
     }
@@ -119,17 +130,18 @@ class DoorTest {
     // Should return the pressure reading from the internal sensor.
     void shouldGetInternalPressure() {
         double internalPressure = 20;
-        PressureSensor internal = new PressureSensor(internalPressure);
-        PressureSensor external = new PressureSensor(20);
+        PressureSensor internal = mock(PressureSensor.class);
+        PressureSensor external = mock(PressureSensor.class);
+        when(internal.getPressure()).thenReturn(internalPressure);
         Door door = new Door(external, internal, DoorState.OPEN);
-        assertEquals(internalPressure, door.getExternalPressure());
+        assertEquals(internalPressure, door.getInternalPressure());
     }
 
     @Test
     // should return TRUE if door state is OPEN
     void shouldDetectOpenDoor() {
-        PressureSensor internal = new PressureSensor(10);
-        PressureSensor external = new PressureSensor(20);
+        PressureSensor internal = mock(PressureSensor.class);
+        PressureSensor external = mock(PressureSensor.class);
         Door door = new Door(external, internal, DoorState.OPEN);
         assertEquals(true, door.isOpen());
         assertEquals(false, door.isClosed());
@@ -138,8 +150,8 @@ class DoorTest {
     @Test
     // should return False if door state is CLOSED
     void shouldDetectClosedDoor() {
-        PressureSensor internal = new PressureSensor(10);
-        PressureSensor external = new PressureSensor(20);
+        PressureSensor internal = mock(PressureSensor.class);
+        PressureSensor external = mock(PressureSensor.class);
         Door door = new Door(external, internal, DoorState.CLOSED);
         assertEquals(true, door.isClosed());
         assertEquals(false, door.isOpen());
@@ -148,8 +160,8 @@ class DoorTest {
     @Test
     // Returns the current DoorState – OPEN or CLOSED
     void shouldGetDoorState() {
-        PressureSensor internal = new PressureSensor(10);
-        PressureSensor external = new PressureSensor(20);
+        PressureSensor internal = mock(PressureSensor.class);
+        PressureSensor external = mock(PressureSensor.class);
         Door door = new Door(external, internal, DoorState.CLOSED);
         assertEquals(DoorState.CLOSED, door.getState());
     }
