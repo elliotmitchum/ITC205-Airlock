@@ -6,6 +6,7 @@ import airlock.exceptions.OverrideException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class AirLockTest {
 
@@ -13,14 +14,13 @@ class AirLockTest {
     // throws AirLockNotSealedException if airlock state is not SEALED.
     void shouldNotEqualiseInternalOnOpen() {
         try {
-            double externalPressure = 20;
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(externalPressure), lockSensor, DoorState.CLOSED);
-            Door externalDoor = new Door(new PressureSensor(10), lockSensor, DoorState.OPEN);
+            PressureSensor lockSensor = mock(PressureSensor.class);
+            Door internalDoor = mock(Door.class);
+            Door externalDoor = mock(Door.class);
+            when(internalDoor.isOpen()).thenReturn(true);
             AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
             airLock.equaliseInternalPressure();
             fail("Should not equalise pressure if doors are open.");
-            assertEquals(lockSensor.getPressure(), externalPressure);
         } catch (AirLockException e) {
             assertNotNull(e);
         }
@@ -30,14 +30,13 @@ class AirLockTest {
     // throws AirLockNotSealedException if airlock state is not SEALED.
     void shouldNotEqualiseExternalOnOpen() {
         try {
-            double externalPressure = 20;
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(externalPressure), lockSensor, DoorState.OPEN);
-            Door externalDoor = new Door(new PressureSensor(10), lockSensor, DoorState.CLOSED);
+            PressureSensor lockSensor = mock(PressureSensor.class);
+            Door internalDoor = mock(Door.class);
+            Door externalDoor = mock(Door.class);
+            when(externalDoor.isOpen()).thenReturn(true);
             AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
             airLock.equaliseExternalPressure();
             fail("Should not equalise pressure if doors are open.");
-            assertEquals(lockSensor.getPressure(), externalPressure);
         } catch (AirLockException e) {
             assertNotNull(e);
         }
@@ -48,12 +47,13 @@ class AirLockTest {
     void setsLockSensorPressureOnEqualiseInnerPressure() {
         try {
             double externalPressure = 20;
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(externalPressure), lockSensor, DoorState.CLOSED);
-            Door externalDoor = new Door(new PressureSensor(10), lockSensor, DoorState.CLOSED);
+            PressureSensor lockSensor = mock(PressureSensor.class);
+            Door internalDoor = mock(Door.class);
+            Door externalDoor = mock(Door.class);
+            when(internalDoor.getExternalPressure()).thenReturn(externalPressure);
             AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
             airLock.equaliseInternalPressure();
-            assertEquals(lockSensor.getPressure(), externalPressure);
+            verify(lockSensor, times(1)).setPressure(externalPressure);
         } catch (AirLockException e) {
             throw new RuntimeException(e);
         }
@@ -63,13 +63,14 @@ class AirLockTest {
     // Equalises lock pressure with external pressure.
     void setsLockSensorPressureOnEqualiseOuterPressure() {
         try {
-            double externalPressure = 10;
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(20), lockSensor, DoorState.CLOSED);
-            Door externalDoor = new Door(new PressureSensor(externalPressure), lockSensor, DoorState.CLOSED);
+            double externalPressure = 20;
+            PressureSensor lockSensor = mock(PressureSensor.class);
+            Door internalDoor = mock(Door.class);
+            Door externalDoor = mock(Door.class);
+            when(externalDoor.getExternalPressure()).thenReturn(externalPressure);
             AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
             airLock.equaliseExternalPressure();
-            assertEquals(lockSensor.getPressure(), externalPressure);
+            verify(lockSensor, times(1)).setPressure(externalPressure);
         } catch (AirLockException e) {
             throw new RuntimeException(e);
         }
@@ -79,41 +80,39 @@ class AirLockTest {
     // Opens internal door, any door exceptions passed through, sets airlock state to OPEN.
     void canOpenEqualPressureInnerDoor() {
         try {
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(20), lockSensor, DoorState.CLOSED);
-            Door externalDoor = new Door(new PressureSensor(10), lockSensor, DoorState.CLOSED);
+            PressureSensor lockSensor = mock(PressureSensor.class);
+            Door internalDoor = mock(Door.class);
+            Door externalDoor = mock(Door.class);
+            when(externalDoor.isOpen()).thenReturn(false);
             AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
-            airLock.equaliseInternalPressure();
             airLock.openInnerDoor();
             assertEquals(AirLockState.OPEN, airLock.getState());
+            verify(internalDoor, times(1)).open();
         } catch (DoorException | AirLockException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Test
-    // returns true if outer door  is CLOSED otherwise false
+    // returns true if outer door is CLOSED otherwise false
     void shouldShowOuterDoorClosed() {
-        try {
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(20), lockSensor, DoorState.CLOSED);
-            Door externalDoor = new Door(new PressureSensor(10), lockSensor, DoorState.OPEN);
-            AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
-            assertEquals(false, airLock.isOuterDoorClosed());
-            airLock.closeOuterDoor();
-            assertEquals(true, airLock.isOuterDoorClosed());
-        } catch (DoorException e) {
-            throw new RuntimeException(e);
-        }
+        PressureSensor lockSensor = mock(PressureSensor.class);
+        Door internalDoor = mock(Door.class);
+        Door externalDoor = mock(Door.class);
+        when(externalDoor.isClosed()).thenReturn(true, false);
+        AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
+        assertEquals(true, airLock.isOuterDoorClosed());
+        assertEquals(false, airLock.isOuterDoorClosed());
     }
 
     @Test
     // throws OtherDoorOpenException if override state is AUTO and external door open.
     void cannotOpenOpenedOuterDoor() {
         try {
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(20), lockSensor, DoorState.CLOSED);
-            Door externalDoor = new Door(new PressureSensor(10), lockSensor, DoorState.OPEN);
+            PressureSensor lockSensor = mock(PressureSensor.class);
+            Door internalDoor = mock(Door.class);
+            Door externalDoor = mock(Door.class);
+            when(externalDoor.isOpen()).thenReturn(true);
             AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
             airLock.openInnerDoor();
             fail("Should not open internal door with opened external door");
@@ -126,13 +125,14 @@ class AirLockTest {
     // Opens external door, any door exceptions passed through, sets airlock state to OPEN.
     void canOpenEqualPressureOuterDoor() {
         try {
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(20), lockSensor, DoorState.CLOSED);
-            Door externalDoor = new Door(new PressureSensor(10), lockSensor, DoorState.CLOSED);
+            PressureSensor lockSensor = mock(PressureSensor.class);
+            Door internalDoor = mock(Door.class);
+            Door externalDoor = mock(Door.class);
+            when(internalDoor.isOpen()).thenReturn(false);
             AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
-            airLock.equaliseExternalPressure();
             airLock.openOuterDoor();
             assertEquals(AirLockState.OPEN, airLock.getState());
+            verify(externalDoor, times(1)).open();
         } catch (DoorException | AirLockException e) {
             throw new RuntimeException(e);
         }
@@ -141,28 +141,25 @@ class AirLockTest {
     @Test
     // Returns true if inner door is CLOSED otherwise false.
     void shouldShowInnerDoorClose() {
-        try {
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(20), lockSensor, DoorState.OPEN);
-            Door externalDoor = new Door(new PressureSensor(10), lockSensor, DoorState.CLOSED);
-            AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
-            assertEquals(false, airLock.isInnerDoorClosed());
-            airLock.closeInnerDoor();
-            assertEquals(true, airLock.isInnerDoorClosed());
-        } catch (DoorException e) {
-            throw new RuntimeException(e);
-        }
+        PressureSensor lockSensor = mock(PressureSensor.class);
+        Door internalDoor = mock(Door.class);
+        Door externalDoor = mock(Door.class);
+        when(internalDoor.isClosed()).thenReturn(true, false);
+        AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
+        assertEquals(true, airLock.isInnerDoorClosed());
+        assertEquals(false, airLock.isInnerDoorClosed());
     }
 
     @Test
     // Closes external door, any door exceptions passed through, if internal door closed sets airlock state to SEALED.
     void canCloseEqualPressureOuterDoor() {
         try {
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(20), lockSensor, DoorState.CLOSED);
-            Door externalDoor = new Door(new PressureSensor(10), lockSensor, DoorState.OPEN);
+            PressureSensor lockSensor = mock(PressureSensor.class);
+            Door internalDoor = mock(Door.class);
+            Door externalDoor = mock(Door.class);
             AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
             airLock.closeOuterDoor();
+            verify(externalDoor, times(1)).close();
             assertEquals(AirLockState.SEALED, airLock.getState());
         } catch (DoorException e) {
             throw new RuntimeException(e);
@@ -173,11 +170,12 @@ class AirLockTest {
     // Closes internal door, any door exceptions passed through.
     void canCloseEqualPressureInnerDoor() {
         try {
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(20), lockSensor, DoorState.OPEN);
-            Door externalDoor = new Door(new PressureSensor(10), lockSensor, DoorState.CLOSED);
+            PressureSensor lockSensor = mock(PressureSensor.class);
+            Door internalDoor = mock(Door.class);
+            Door externalDoor = mock(Door.class);
             AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
             airLock.closeInnerDoor();
+            verify(internalDoor, times(1)).close();
             assertEquals(AirLockState.SEALED, airLock.getState());
         } catch (DoorException e) {
             throw new RuntimeException(e);
@@ -188,12 +186,13 @@ class AirLockTest {
     // Throws OtherDoorOpenException if override state is AUTO and internal door open.
     void cannotOpenOpenedInnerDoor() {
         try {
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(20), lockSensor, DoorState.OPEN);
-            Door externalDoor = new Door(new PressureSensor(10), lockSensor, DoorState.CLOSED);
+            PressureSensor lockSensor = mock(PressureSensor.class);
+            Door internalDoor = mock(Door.class);
+            Door externalDoor = mock(Door.class);
+            when(internalDoor.isOpen()).thenReturn(true);
             AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
             airLock.openOuterDoor();
-            fail("Should not open outer door with opened external door");
+            fail("Should not open external door with opened internal door");
         } catch (DoorException | AirLockException e) {
             assertNotNull(e);
         }
@@ -203,9 +202,9 @@ class AirLockTest {
     // Toggles overrideState between MANUAL and AUTO.
     void canOverrideToManualWithClosedDoors() {
         try {
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(0), lockSensor, DoorState.CLOSED);
-            Door externalDoor = new Door(new PressureSensor(0), lockSensor, DoorState.CLOSED);
+            PressureSensor lockSensor = mock(PressureSensor.class);
+            Door internalDoor = mock(Door.class);
+            Door externalDoor = mock(Door.class);
             AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
             airLock.toggleOverride();
             assertEquals(true, airLock.isInManualOverride());
@@ -218,29 +217,12 @@ class AirLockTest {
     // Returns true if overrideState is MANUAL otherwise false.
     void shouldShowManualOverride() {
         try {
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(0), lockSensor, DoorState.CLOSED);
-            Door externalDoor = new Door(new PressureSensor(0), lockSensor, DoorState.CLOSED);
+            PressureSensor lockSensor = mock(PressureSensor.class);
+            Door internalDoor = mock(Door.class);
+            Door externalDoor = mock(Door.class);
             AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
-            assertEquals(false, airLock.isInManualOverride());
             airLock.toggleOverride();
             assertEquals(true, airLock.isInManualOverride());
-        } catch (OverrideException e) {
-            fail(e.getMessage());
-        }
-    }
-
-    @Test
-    // Toggles overrideState between AUTO and MANUAL.
-    void canOverrideToAutoWithClosedDoors() {
-        try {
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(0), lockSensor, DoorState.CLOSED);
-            Door externalDoor = new Door(new PressureSensor(0), lockSensor, DoorState.CLOSED);
-            AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
-            airLock.toggleOverride();
-            airLock.toggleOverride();
-            assertEquals(OverrideState.AUTO, airLock.getOverrideState());
         } catch (OverrideException e) {
             fail(e.getMessage());
         }
@@ -250,9 +232,11 @@ class AirLockTest {
     // Throws OverrideException if airlock state is not SEALED.
     void cannotOverrideOpenDoors() {
         try {
-            PressureSensor lockSensor = new PressureSensor(0);
-            Door internalDoor = new Door(new PressureSensor(0), lockSensor, DoorState.OPEN);
-            Door externalDoor = new Door(new PressureSensor(0), lockSensor, DoorState.CLOSED);
+            PressureSensor lockSensor = mock(PressureSensor.class);
+            Door internalDoor = mock(Door.class);
+            Door externalDoor = mock(Door.class);
+            when(internalDoor.isOpen()).thenReturn(true);
+            when(internalDoor.isClosed()).thenReturn(false);
             AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
             airLock.toggleOverride();
             fail("Should not override with open doors.");

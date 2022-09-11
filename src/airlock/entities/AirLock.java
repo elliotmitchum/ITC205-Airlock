@@ -85,6 +85,10 @@ public class AirLock implements IAirLock{
 
 	@Override
 	public void toggleOverride() throws OverrideException{
+		if (this.getState() != AirLockState.SEALED) {
+			throw new OverrideException("Airlock must be sealed");
+		}
+
 		if (innerDoor.isOpen() || outerDoor.isOpen()) {
 			throw new OverrideException("Doors must first be closed");
 		}
