@@ -5,8 +5,10 @@ import airlock.exceptions.DoorAlreadyOpenException;
 import airlock.exceptions.DoorException;
 import airlock.exceptions.UnequalPressureException;
 
-public class Door implements IDoor{
-	
+import static java.lang.Math.abs;
+
+public class Door implements IDoor {
+
 	private static double TOLERANCE = 0.001;
 	
 	IPressureSensor internalSensor;
@@ -22,24 +24,36 @@ public class Door implements IDoor{
 	
 	@Override
 	public void open() throws DoorException {
-		// TODO Auto-generated method stub
+		double diff = abs(internalSensor.getPressure() - externalSensor.getPressure());
+
+		if (diff > TOLERANCE) {
+			throw new UnequalPressureException("Internal and external pressure is unequal.");
+		}
+
+		if (this.state == DoorState.OPEN) {
+			throw new DoorAlreadyOpenException("Door already open.");
+		}
+
+		this.state = DoorState.OPEN;
 	}
 	
 	@Override
 	public void close() throws DoorException {
-		// TODO Auto-generated method stub
+		if (this.state == DoorState.CLOSED) {
+			throw new DoorAlreadyClosedException("Door already closed.");
+		}
+
+		this.state = DoorState.CLOSED;
 	}
 
 	@Override
 	public double getExternalPressure() {
-		// TODO Auto-generated method stub
-		return 0.0;
+		return this.externalSensor.getPressure();
 	}
 
 	@Override
 	public double getInternalPressure() {
-		// TODO Auto-generated method stub
-		return 0.0;
+		return this.internalSensor.getPressure();
 	}
 
 	@Override
@@ -62,10 +76,6 @@ public class Door implements IDoor{
 			"Door: state: %s, external pressure: %3.1f bar, internal pressure: %3.1f bar", 
 			state, externalSensor.getPressure(), internalSensor.getPressure());
 	}
-	
-	
-	
-	
 	
 
 }
