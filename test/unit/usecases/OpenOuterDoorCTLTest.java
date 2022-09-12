@@ -1,8 +1,9 @@
-package airlock.usecases;
+package unit.usecases;
 
 import airlock.entities.*;
 import airlock.exceptions.AirLockException;
 import airlock.exceptions.DoorException;
+import airlock.usecases.OpenOuterDoorCTL;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;

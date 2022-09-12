@@ -1,5 +1,6 @@
-package airlock.entities;
+package unit.entities;
 
+import airlock.entities.PressureSensor;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

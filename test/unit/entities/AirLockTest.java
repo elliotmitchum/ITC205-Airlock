@@ -1,8 +1,13 @@
-package airlock.entities;
+package unit.entities;
 
+import airlock.entities.AirLock;
+import airlock.entities.AirLockState;
+import airlock.entities.Door;
+import airlock.entities.PressureSensor;
 import airlock.exceptions.AirLockException;
 import airlock.exceptions.DoorException;
 import airlock.exceptions.OverrideException;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -86,7 +91,7 @@ class AirLockTest {
             when(externalDoor.isOpen()).thenReturn(false);
             AirLock airLock = new AirLock(externalDoor, internalDoor, lockSensor);
             airLock.openInnerDoor();
-            assertEquals(AirLockState.OPEN, airLock.getState());
+            Assertions.assertEquals(AirLockState.OPEN, airLock.getState());
             verify(internalDoor, times(1)).open();
         } catch (DoorException | AirLockException e) {
             throw new RuntimeException(e);

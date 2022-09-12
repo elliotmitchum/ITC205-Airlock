@@ -1,9 +1,10 @@
-package airlock.usecases;
+package unit.usecases;
 
 import airlock.entities.*;
 import airlock.exceptions.AirLockException;
 import airlock.exceptions.DoorException;
 import airlock.exceptions.OverrideException;
+import airlock.usecases.OpenInnerDoorCTL;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

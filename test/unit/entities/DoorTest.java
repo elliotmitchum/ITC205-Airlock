@@ -1,5 +1,8 @@
-package airlock.entities;
+package unit.entities;
 
+import airlock.entities.Door;
+import airlock.entities.DoorState;
+import airlock.entities.PressureSensor;
 import airlock.exceptions.DoorException;
 import org.junit.jupiter.api.Test;
 
