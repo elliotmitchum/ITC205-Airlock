@@ -19,4 +19,6 @@ class PressureSensorTest {
         sensor.setPressure(10);
         assertEquals(sensor.getPressure(), 10);
     }
+
+
 }
