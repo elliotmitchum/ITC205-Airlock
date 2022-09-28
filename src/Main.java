@@ -89,8 +89,11 @@ public class Main {
 						ans = scanner.nextLine();
 						double exP = Double.valueOf(ans).doubleValue();
 						externalSensor.setPressure(exP);
-						if (!externalDoor.isOpen()) {
+						if (externalDoor.isOpen()) {
 							lockSensor.setPressure(exP);
+							if (internalDoor.isOpen()) {
+								internalSensor.setPressure(exP);
+							}
 						}
 						break;
 					
@@ -99,8 +102,11 @@ public class Main {
 						ans = scanner.nextLine();
 						double inP = Double.valueOf(ans).doubleValue();
 						internalSensor.setPressure(inP);
-						if (!internalDoor.isOpen()) {
+						if (internalDoor.isOpen()) {
 							lockSensor.setPressure(inP);
+							if (externalDoor.isOpen()) {
+								externalSensor.setPressure(inP);
+							}
 						}
 						break;
 						
