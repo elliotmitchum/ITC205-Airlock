@@ -31,27 +31,30 @@ public class Main {
 		
 		String menuFormatString = 
 		"""
-		
-		%s
-		Internal %s
-		External %s
-	
-		
-		Select option:
-		    OX - open external door
-		    OI - open internal door
+					
+			%s
+			Internal %s
+			External %s
+				
+					
+			Select option:
+			    OX - open external door
+			    OI - open internal door
 
-		    CX - close external door
-		    CI - close internal door
+			    CX - close external door
+			    CI - close internal door
 
-		    SX - set external pressure
-		    SI - set internal pressure
-		    
-		    TM - toggle manual override
-		    
-		    Q  - quit
-		
-		Selection: """;
+			    SX - set external pressure
+			    SI - set internal pressure
+			    
+			    EX - equalise lock with external pressure
+				EI - equalise lock with internal pressure
+			    
+			    TM - toggle manual override
+			    
+			    Q  - quit
+					
+			Selection: """;
 		
 		Scanner scanner = new Scanner(System.in);
 		//testLoop
@@ -73,6 +76,7 @@ public class Main {
 						break;
 						
 					case "OI" :
+						if (airLock.isInManualOverride()) airLock.equaliseInternalPressure();
 						new OpenInnerDoorCTL(airLock).openInnerDoor();
 						break;
 						
@@ -108,6 +112,14 @@ public class Main {
 								externalSensor.setPressure(inP);
 							}
 						}
+						break;
+
+					case "EX" :
+						airLock.equaliseExternalPressure();
+						break;
+
+					case "EI" :
+						airLock.equaliseInternalPressure();
 						break;
 						
 					case "TM" :
