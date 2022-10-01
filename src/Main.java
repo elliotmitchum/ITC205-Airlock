@@ -76,7 +76,6 @@ public class Main {
 						break;
 						
 					case "OI" :
-						if (airLock.isInManualOverride()) airLock.equaliseInternalPressure();
 						new OpenInnerDoorCTL(airLock).openInnerDoor();
 						break;
 						
